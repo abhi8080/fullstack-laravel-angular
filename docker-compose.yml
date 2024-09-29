@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+  mysql-db:
+    image: mysql:8
+    container_name: mysql-db-container
+    environment:
+      MYSQL_DATABASE: fullstack
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - 3306:3306
+    networks:
+      - fullstack-laravel-angular
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: backend-container
+    restart: always
+    depends_on:
+      - mysql-db
+    volumes:
+      - ./backend:/usr/src/app
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+    networks:
+      - fullstack-laravel-angular
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    container_name: frontend-container
+    stdin_open: true
+    restart: always
+    expose:
+      - 4200
+    ports:
+       - "4200:4200"
+    volumes:
+      - ./frontend:/usr/src/app
+    depends_on:
+      - mysql-db
+    networks:
+      - fullstack-laravel-angular
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-container
+    environment:
+      PMA_HOST: mysql-db
+      PMA_USER: root
+      PMA_PASSWORD: ""
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql-db
+    networks:
+      - fullstack-laravel-angular
+
+networks:
+  fullstack-laravel-angular:
+    external: true
